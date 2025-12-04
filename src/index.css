@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@plugin "@toolwind/corner-shape";
+
+
+body {
+    @apply bg-neutral-900 text-white;
+}
+
+html {
+    scroll-behavior: smooth;
+}
