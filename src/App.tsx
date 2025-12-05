@@ -28,8 +28,8 @@ const airports: Airport[] = [
     name: "IVALO",
     elevationFt: 482,
     corrections: [
-      { name: "TMA SMAC", feet: 3600 },
-      { name: "CTR SMAC", feet: 3000 },
+      { name: "IAF", feet: 3600 },
+      { name: "TMA/CTR SMAC", feet: 3000 },
     ],
   },
   {

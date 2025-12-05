@@ -1,44 +1,38 @@
 const METAR_URL =
-    "https://api.met.no/weatherapi/tafmetar/1.0/metar.txt?icao=EFHA,EFHK,EFIV,EFJO,EFJY,EFKE,EFKT,EFKK,EFKU,EFKS,EFMA,EFOU,EFPO,EFRO,EFTP,EFTU,EFVA";
+  "https://api.met.no/weatherapi/tafmetar/1.0/metar.txt?icao=EFHA,EFHK,EFIV,EFJO,EFJY,EFKE,EFKT,EFKK,EFKU,EFKS,EFMA,EFOU,EFPO,EFRO,EFTP,EFTU,EFVA";
 
 export type AirportTemps = Record<string, number | null>;
 
 export async function fetchLatestTemps(): Promise<AirportTemps> {
-    const res = await fetch(METAR_URL);
-    const text = await res.text();
+  const res = await fetch(METAR_URL);
+  const text = await res.text();
 
-    const lines = text.trim().split("\n");
+  const lines = text.trim().split("\n");
+  const latest: Record<string, string> = {};
 
-    const latest: Record<string, string> = {};
+  // Keep only last METAR per ICAO
+  for (const line of lines) {
+    const icao = line.slice(0, 4);
+    latest[icao] = line;
+  }
 
-    // pick latest METAR per ICAO (the last entry in the text block)
-    for (const line of lines) {
-        const icao = line.slice(0, 4);
-        latest[icao] = line;
+  const temps: AirportTemps = {};
+
+  for (const [icao, metar] of Object.entries(latest)) {
+    // Match: M02/ or 02/
+    const tempMatch = metar.match(/\b(M?\d{2})\//);
+
+    if (!tempMatch) {
+      temps[icao] = null;
+      continue;
     }
 
-    const temps: AirportTemps = {};
+    const raw = tempMatch[1]; // "M02" or "02"
+    const isNegative = raw.startsWith("M");
+    const value = parseInt(raw.replace("M", ""), 10);
 
-    for (const [icao, metar] of Object.entries(latest)) {
-        // Try negative temperature first: M09, M15, M02 etc.
-        const negMatch = metar.match(/M(\d{2}) /);
+    temps[icao] = isNegative ? -value : value;
+  }
 
-        if (negMatch) {
-            temps[icao] = -parseInt(negMatch[1], 10);
-            continue;
-        }
-
-        // Positive temperature: 03/02 or 09/08 etc.
-        const posMatch = metar.match(/(\d{2})\//);
-
-        if (posMatch) {
-            temps[icao] = parseInt(posMatch[1], 10);
-            continue;
-        }
-
-        // If no temp found → treat as positive (no correction)
-        temps[icao] = null;
-    }
-
-    return temps;
+  return temps;
 }
