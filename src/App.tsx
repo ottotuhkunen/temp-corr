@@ -1,5 +1,7 @@
 
 import { Info, AlertTriangle, Airplay, CheckCircle } from "lucide-react"
+import {type AirportTemps, fetchLatestTemps} from "./fetchTemps"
+import {useEffect, useState} from "react";
 
 const airports: Airport[] = [
     { icao: "EFHA", name: "HALLI", elevationFt: 481, corrections: [{ name: "TMA SMAC", feet: 2700 }, { name: "CTR SMAC", feet: 2000 }] },
@@ -107,6 +109,16 @@ function buildCTCTable(publishedFt: number, elevationFt: number, mocFt = 1001): 
 
 // UI component
 export default function App(): JSX.Element {
+
+    const [temps, setTemps] = useState<AirportTemps>({});
+    const [loadingTemps, setLoadingTemps] = useState(true);
+
+    useEffect(() => {
+        fetchLatestTemps()
+            .then((t) => setTemps(t))
+            .finally(() => setLoadingTemps(false));
+    }, []);
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-neutral-900 to-neutral-950 text-white p-8 font-sans">
             <div className="flex gap-3 items-center justify-center mb-6">
@@ -143,7 +155,11 @@ export default function App(): JSX.Element {
                     <div key={airport.icao} className="bg-neutral-800 text-gray-200 p-6 rounded-[40px] corner-squircle shadow flex-1">
                         <div className="flex flex-row items-center justify-between">
                             <h2 className="text-lg font-semibold">{airport.icao} {airport.name}</h2>
-                            <p className="text-sm mt-1">Elev. {airport.elevationFt} ft</p>
+                            <div className="flex flex-col items-end">
+                                <p className="text-sm text-gray-400">{airport.elevationFt} ft</p>
+                                <p className="text-sm text-gray-400">{temps[airport.icao]}°C</p>
+                            </div>
+
                         </div>
 
 
@@ -167,13 +183,56 @@ export default function App(): JSX.Element {
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        {table.map((row, rIdx) => (
-                                            <tr key={rIdx} className="bg-white text-black border border-slate-700">
-                                                <td className="px-2 py-1 text-right border border-slate-700">{row.range}</td>
-                                                <td className="px-2 py-1 text-center border border-slate-700">{row.correctedFt}</td>
-                                                <td className="px-2 py-1 text-center border border-slate-700">{row.correctedM}</td>
-                                            </tr>
-                                        ))}
+                                            {table.map((row, rIdx) => {
+
+                                                let highlight = false;
+
+                                                if (!loadingTemps) {
+                                                    const t = temps[airport.icao];
+
+                                                    if (t === null) {
+                                                        highlight = rIdx === 0;
+                                                    } else {
+                                                        const range = row.range.trim();
+
+                                                        let low = null;
+                                                        let high = null;
+
+                                                        if (range.startsWith("…")) {
+                                                            // Pattern: "… -5"
+                                                            high = parseFloat(range.replace("…", "").trim());
+                                                            low = 0; // upper bound (0°C)
+                                                        } else {
+                                                            // Pattern: "A … B"
+                                                            const parts = range.split("…").map(s => s.trim());
+                                                            if (parts.length === 2) {
+                                                                low = parseFloat(parts[0]);   // warmer temperature
+                                                                high = parseFloat(parts[1]);  // colder temperature
+                                                            }
+                                                        }
+
+                                                        if (low != null && high != null && !isNaN(low) && !isNaN(high)) {
+                                                            if (t <= low && t >= high) {
+                                                                highlight = true;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+
+                                                return (
+                                                    <tr
+                                                        key={rIdx}
+                                                        className={`border border-slate-700 ${
+                                                            highlight ? "bg-green-300 text-black" : "bg-white text-black"
+                                                        }`}
+                                                    >
+                                                        <td className="px-2 py-1 text-right border border-slate-700">{row.range}</td>
+                                                        <td className="px-2 py-1 text-center border border-slate-700">{row.correctedFt}</td>
+                                                        <td className="px-2 py-1 text-center border border-slate-700">{row.correctedM}</td>
+                                                    </tr>
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
