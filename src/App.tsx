@@ -1,6 +1,6 @@
 import { Info, AlertTriangle, Airplay, CheckCircle } from "lucide-react";
 import { type AirportTemps, fetchLatestTemps } from "./fetchTemps";
-import { useEffect, useState } from "react";
+import { type JSX, useEffect, useState } from "react";
 
 const airports: Airport[] = [
   {
@@ -311,7 +311,10 @@ export default function App(): JSX.Element {
           >
             <div className="flex flex-row items-center justify-between">
               <h2 className="text-lg font-semibold">
-                {airport.icao} {airport.name}
+                <span className="text-sky-400 font-bold pr-2">
+                  {airport.icao}
+                </span>
+                {airport.name}
               </h2>
               <div className="flex flex-col items-end">
                 <p className="text-sm text-gray-400">
