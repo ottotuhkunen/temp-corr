@@ -1,4 +1,10 @@
-import { Info, AlertTriangle, Radar, Calculator, Headset } from "lucide-react";
+import {
+  Percent,
+  AlertTriangle,
+  Radar,
+  Calculator,
+  Headset,
+} from "lucide-react";
 import { type AirportTemps, fetchLatestTemps } from "./fetchTemps";
 import { type JSX, useEffect, useState } from "react";
 
@@ -177,7 +183,7 @@ const airports: Airport[] = [
   },
 ];
 
-const LAPSE_RATE_C_PER_FT = 0.00198; // 0.00198 °C / ft (L0)
+const LAPSE_RATE_C_PER_FT = 0.00198; // 0.00198 °C / ft (L0) ICAO
 
 // Types
 type CorrectionPoint = { name: string; feet: number; mocFt?: number };
@@ -213,7 +219,7 @@ function buildCTCTable(
 ): CTCRow[] {
   const MIN_TEMP_STEP = 0.1; // iterate 0.1°C
   const MIN_TEMP_C = -50; // lowest temp
-  const MAX_TEMP_C = 0; // starting point (optional)
+  const MAX_TEMP_C = 0; // starting point
 
   const rows: CTCRow[] = [];
   let lastCorrected: number | null = null;
@@ -298,15 +304,7 @@ export default function App(): JSX.Element {
         <div className="flex items-start border-l-4 border-yellow-400 bg-neutral-800/60 p-3 rounded-lg shadow">
           <AlertTriangle className="mr-3 text-yellow-400 w-5 h-5 flex-shrink-0" />
           <p className="text-yellow-400 font-semibold">
-            Vain simulaattorikäyttöön VATSIM-verkostossa.
-          </p>
-        </div>
-
-        <div className="flex items-start border-l-4 border-cyan-400 bg-neutral-800/60 p-3 rounded-lg shadow">
-          <Info className="mr-3 text-cyan-400 w-5 h-5 flex-shrink-0" />
-          <p className="text-gray-400">
-            Lämpötilakorjaus tehdään silloin, kun kylmän lämpötilan vaikutus
-            ylittää 20 % vaadittavasta minimiestevarasta.
+            Vain simulaattorikäyttöön VATSIM-verkossa.
           </p>
         </div>
 
@@ -316,6 +314,14 @@ export default function App(): JSX.Element {
             Annettaessa valvontapalvelua IFR-lennolle, lennonjohtaja huolehtii
             minimiestevaran säilymisestä. Lennonjohtaja huomioi lämpötilan
             vaikutuksen aina, kun lämpötila lentopaikalla on alle 0°C.
+          </p>
+        </div>
+
+        <div className="flex items-start border-l-4 border-cyan-400 bg-neutral-800/60 p-3 rounded-lg shadow">
+          <Percent className="mr-3 text-cyan-400 w-5 h-5 flex-shrink-0" />
+          <p className="text-gray-400">
+            Lämpötilakorjaus tehdään silloin, kun kylmän lämpötilan vaikutus
+            ylittää 20 % vaadittavasta minimiestevarasta.
           </p>
         </div>
 
@@ -343,7 +349,7 @@ export default function App(): JSX.Element {
         {airports.map((airport) => (
           <div
             key={airport.icao}
-            className="bg-neutral-800 text-gray-200 p-6 rounded-[40px] corner-squircle shadow flex-1"
+            className="bg-neutral-800/60 text-gray-200 p-6 rounded-[40px] corner-squircle shadow flex-1"
           >
             <div className="flex flex-row items-center justify-between">
               <h2 className="text-lg font-semibold">
@@ -455,7 +461,7 @@ export default function App(): JSX.Element {
               );
             })}
             {airport.notes && airport.notes.length > 0 && (
-              <div className="mt-6 p-3 bg-neutral-700/60 border-l-4 border-sky-400 rounded-lg text-sm text-gray-300 space-y-2">
+              <div className="mt-6 p-3 bg-neutral-700/50 border-l-4 border-sky-400 rounded-lg text-sm text-gray-400 space-y-2">
                 {airport.notes.map((n, idx) => (
                   <p key={idx}>{n.note}</p>
                 ))}
