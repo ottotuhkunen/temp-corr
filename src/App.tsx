@@ -1,4 +1,4 @@
-import { Info, AlertTriangle, Airplay, CheckCircle } from "lucide-react";
+import { Info, AlertTriangle, Radar, Calculator, Headset } from "lucide-react";
 import { type AirportTemps, fetchLatestTemps } from "./fetchTemps";
 import { type JSX, useEffect, useState } from "react";
 
@@ -8,14 +8,19 @@ const airports: Airport[] = [
     name: "HALLI",
     elevationFt: 481,
     corrections: [
-      { name: "TMA SMAC", feet: 2700 },
-      { name: "CTR SMAC", feet: 2000 },
+      { name: "TMA SMAA", feet: 2700 },
+      { name: "CTR SMAA", feet: 2000 },
     ],
   },
   {
     icao: "EFHK",
     name: "HELSINKI‑VANTAA",
     elevationFt: 180,
+    notes: [
+      {
+        note: "Mikäli vektoroidaan kiitoteille 15 tai 22R 3 NM tai lähempänä Kivenlahden TV-mastoa (SMAA S02), käytetään maston “ylivektoroinnin” aikana kiitotien 04L lämpötilakorjattuja arvoja.",
+      },
+    ],
     corrections: [
       { name: "IAF 04L", feet: 2300 },
       { name: "IAF 04R", feet: 3300 },
@@ -28,18 +33,25 @@ const airports: Airport[] = [
     name: "IVALO",
     elevationFt: 482,
     corrections: [
-      { name: "IAF", feet: 3600 },
-      { name: "TMA/CTR SMAC", feet: 3000 },
+      { name: "TMA/CTR SMAA", feet: 3000 },
+      { name: "CTA SMAA", feet: 3600 },
     ],
   },
   {
     icao: "EFJO",
     name: "JOENSUU",
     elevationFt: 399,
+    notes: [
+      {
+        note: "Lämpötilakorjaus tehdään tyypillisesti TMA SMAA-korkeuteen. Alkulähestymiskorkeus 2900 ft edellyttää lämpötilakorjausta, kun lämpötila on −30.1 °C tai kylmempi.",
+      },
+      {
+        note: "ILS-X alkulähestymiskorkeus 4000 ft ei vaadi lämpötilakorjausta.",
+      },
+    ],
     corrections: [
-      { name: "IAF", feet: 2900 },
-      { name: "IAF ILS X", feet: 4000 },
-      { name: "TMA SMAC", feet: 2500 },
+      { name: "TMA SMAA", feet: 2500 },
+      { name: "(IAF)", feet: 2900 },
     ],
   },
   {
@@ -47,33 +59,38 @@ const airports: Airport[] = [
     name: "JYVÄSKYLÄ",
     elevationFt: 460,
     corrections: [
-      { name: "IAF", feet: 2900 },
-      { name: "TMA SMAC", feet: 2500 },
-      { name: "CTR SMAC", feet: 2100 },
+      { name: "SMAA S13/S14", feet: 2500 },
+      { name: "SMAA S11", feet: 2100 },
+      { name: "SMAA S02", feet: 2900 },
     ],
   },
   {
     icao: "EFKE",
     name: "KEMI‑TORNIO",
     elevationFt: 62,
-    corrections: [{ name: "TMA SMAC", feet: 2500 }],
+    corrections: [{ name: "TMA SMAA", feet: 2500 }],
   },
   {
     icao: "EFKT",
     name: "KITTILÄ",
     elevationFt: 645,
     corrections: [
-      { name: "TMA SMAC", feet: 3800 },
-      { name: "CTR SMAC", feet: 3100 },
+      { name: "TMA SMAA", feet: 3800 },
+      { name: "CTR SMAA", feet: 3100 },
     ],
   },
   {
     icao: "EFKK",
     name: "KOKKOLA‑PIETARSAARI",
     elevationFt: 85,
+    notes: [
+      {
+        note: "Lämpötilakorjaus tehdään tyypillisesti TMA SMAA-korkeuteen. Alkulähestymiskorkeus 2400 ft edellyttää lämpötilakorjausta, kun lämpötila on −21.1 °C tai kylmempi.",
+      },
+    ],
     corrections: [
-      { name: "IAF", feet: 2400 },
-      { name: "TMA SMAC", feet: 2100 },
+      { name: "TMA SMAA", feet: 2100 },
+      { name: "(IAF)", feet: 2400 },
     ],
   },
   {
@@ -81,24 +98,29 @@ const airports: Airport[] = [
     name: "KUOPIO",
     elevationFt: 324,
     corrections: [
-      { name: "IAF", feet: 2700 },
-      { name: "TMA/CTR SMAC", feet: 2100 },
-      { name: "S05 SMAC", feet: 2700 },
+      { name: "SMAA S06/S08", feet: 2100 },
+      { name: "SMAA S09", feet: 2300 },
+      { name: "SMAA S05", feet: 2700 },
     ],
   },
   {
     icao: "EFKS",
     name: "KUUSAMO",
     elevationFt: 868,
-    corrections: [{ name: "TMA/CTR SMAC", feet: 3000 }],
+    corrections: [{ name: "TMA/CTR SMAA", feet: 3000 }],
   },
   {
     icao: "EFMA",
     name: "MARIEHAMN",
     elevationFt: 18,
+    notes: [
+      {
+        note: "Lämpötilakorjaus tehdään tyypillisesti TMA SMAA-korkeuteen. Alkulähestymiskorkeus 2000 ft edellyttää lämpötilakorjausta, kun lämpötila on −11.1 °C tai kylmempi.",
+      },
+    ],
     corrections: [
-      { name: "IAF", feet: 2000 },
-      { name: "TMA SMAC", feet: 1900 },
+      { name: "TMA SMAA", feet: 1900 },
+      { name: "(IAF)", feet: 2000 },
     ],
   },
   {
@@ -106,24 +128,29 @@ const airports: Airport[] = [
     name: "OULU",
     elevationFt: 48,
     corrections: [
-      { name: "IAF", feet: 2300 },
-      { name: "TMA SMAC", feet: 2100 },
-      { name: "CTR SMAC", feet: 1800 },
+      { name: "TMA SMAA", feet: 2100 },
+      { name: "CTR SMAA", feet: 1800 },
+      { name: "IAF / SMAA S02", feet: 2300 },
     ],
   },
   {
     icao: "EFPO",
     name: "PORI",
     elevationFt: 45,
-    corrections: [{ name: "TMA SMAC", feet: 2200 }],
+    corrections: [{ name: "TMA SMAA", feet: 2200 }],
   },
   {
     icao: "EFRO",
     name: "ROVANIEMI",
     elevationFt: 643,
+    notes: [
+      {
+        note: "Lämpötilakorjaus tehdään tyypillisesti TMA SMAA-korkeuteen. Alkulähestymiskorkeus 2500 ft edellyttää lämpötilakorjausta, kun lämpötila on −14.1 °C tai kylmempi.",
+      },
+    ],
     corrections: [
-      { name: "IAF", feet: 2500 },
-      { name: "TMA/CTR SMAC", feet: 2400 },
+      { name: "TMA/CTR SMAA", feet: 2400 },
+      { name: "(IAF)", feet: 2500 },
     ],
   },
   {
@@ -131,22 +158,22 @@ const airports: Airport[] = [
     name: "TAMPERE‑PIRKKALA",
     elevationFt: 391,
     corrections: [
-      { name: "IAF", feet: 2700 },
-      { name: "TMA SMAC", feet: 2300 },
-      { name: "CTR SMAC", feet: 2000 },
+      { name: "TMA SMAA", feet: 2300 },
+      { name: "CTR SMAA", feet: 2000 },
+      { name: "IAF / SMAA S10", feet: 2700 },
     ],
   },
   {
     icao: "EFTU",
     name: "TURKU",
     elevationFt: 162,
-    corrections: [{ name: "TMA SMAC", feet: 2200 }],
+    corrections: [{ name: "TMA SMAA", feet: 2200 }],
   },
   {
     icao: "EFVA",
     name: "VAASA",
     elevationFt: 21,
-    corrections: [{ name: "TMA SMAC", feet: 2300 }],
+    corrections: [{ name: "TMA SMAA", feet: 2300 }],
   },
 ];
 
@@ -158,6 +185,7 @@ type Airport = {
   icao: string;
   name: string;
   elevationFt: number;
+  notes?: { note: string }[];
   corrections: CorrectionPoint[];
 };
 type CTCRow = { range: string; correctedFt: number; correctedM: number };
@@ -274,16 +302,16 @@ export default function App(): JSX.Element {
           </p>
         </div>
 
-        <div className="flex items-start border-l-4 border-blue-400 bg-neutral-800/60 p-3 rounded-lg shadow">
-          <Info className="mr-3 text-blue-400 w-5 h-5 flex-shrink-0" />
+        <div className="flex items-start border-l-4 border-cyan-400 bg-neutral-800/60 p-3 rounded-lg shadow">
+          <Info className="mr-3 text-cyan-400 w-5 h-5 flex-shrink-0" />
           <p className="text-gray-400">
-            Lämpötilakorjausta sovelletaan, kun korjauksen arvo on yli 20%
-            vaadittavasta minimiestevarasta.
+            Lämpötilakorjaus tehdään silloin, kun kylmän lämpötilan vaikutus
+            ylittää 20 % vaadittavasta minimiestevarasta.
           </p>
         </div>
 
-        <div className="flex items-start border-l-4 border-cyan-400 bg-neutral-800/60 p-3 rounded-lg shadow">
-          <Airplay className="mr-3 text-cyan-400 w-5 h-5 flex-shrink-0" />
+        <div className="flex items-start border-l-4 border-fuchsia-400 bg-neutral-800/60 p-3 rounded-lg shadow">
+          <Radar className="mr-3 text-fuchsia-400 w-5 h-5 flex-shrink-0" />
           <p className="text-gray-400">
             Annettaessa valvontapalvelua IFR-lennolle, lennonjohtaja huolehtii
             minimiestevaran säilymisestä. Lennonjohtaja huomioi lämpötilan
@@ -291,8 +319,16 @@ export default function App(): JSX.Element {
           </p>
         </div>
 
+        <div className="flex items-start border-l-4 border-red-400 bg-neutral-800/60 p-3 rounded-lg shadow">
+          <Calculator className="mr-3 text-red-400 w-5 h-5 flex-shrink-0" />
+          <p className="text-gray-400">
+            AFIS-kentillä ja menetelmälennonjohtokentillä lentäjä vastaa itse
+            lämpötilakorjauksen laskemisesta.
+          </p>
+        </div>
+
         <div className="flex items-start border-l-4 border-green-400 bg-neutral-800/60 p-3 rounded-lg shadow">
-          <CheckCircle className="mr-3 text-green-400 w-5 h-5 flex-shrink-0" />
+          <Headset className="mr-3 text-green-400 w-5 h-5 flex-shrink-0" />
           <p className="text-gray-400">
             Mikäli lennonjohtaja on huomioinut kylmän lämpötilan vaatiman
             korjauksen, sisältää annettu selvitys sanonnan{" "}
@@ -418,6 +454,13 @@ export default function App(): JSX.Element {
                 </div>
               );
             })}
+            {airport.notes && airport.notes.length > 0 && (
+              <div className="mt-6 p-3 bg-neutral-700/60 border-l-4 border-sky-400 rounded-lg text-sm text-gray-300 space-y-2">
+                {airport.notes.map((n, idx) => (
+                  <p key={idx}>{n.note}</p>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
